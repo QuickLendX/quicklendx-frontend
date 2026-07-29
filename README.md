@@ -15,6 +15,7 @@ npm run dev
 | Script            | What it does                                   |
 | ----------------- | ---------------------------------------------- |
 | `npm run dev`     | Start the dev server                           |
+| `npm run dev:reset` | Clear local dev caches (`.next`), then start the dev server |
 | `npm run build`   | Production build                               |
 | `npm run start`   | Serve the production build                     |
 | `npm run lint`    | ESLint (Next.js core-web-vitals + TS presets)  |
