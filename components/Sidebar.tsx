@@ -1,11 +1,13 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { useSidebar } from "./SidebarProvider";
+import { DashboardIcon, PortfolioIcon } from "./icons";
 
 const NAV_LINKS = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/portfolio", label: "Portfolio" },
+  { href: "/dashboard", label: "Dashboard", Icon: DashboardIcon },
+  { href: "/portfolio", label: "Portfolio", Icon: PortfolioIcon },
 ];
 
 const NAV_LIST_ID = "primary-navigation-links";
@@ -28,10 +30,15 @@ export function Sidebar() {
         {collapsed ? "Expand" : "Collapse"}
       </button>
       {!collapsed ? (
-        <ul id={NAV_LIST_ID}>
-          {NAV_LINKS.map((link) => (
-            <li key={link.href}>
-              <Link href={link.href}>{link.label}</Link>
+        <ul>
+          {NAV_LINKS.map(({ href, label, Icon }) => (
+            <li key={href}>
+              <Link href={href}>
+                <Suspense fallback={null}>
+                  <Icon />
+                </Suspense>
+                {label}
+              </Link>
             </li>
           ))}
         </ul>

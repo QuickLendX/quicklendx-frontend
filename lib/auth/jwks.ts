@@ -31,10 +31,22 @@ function readCache(): CacheEntry | null {
   }
 }
 
+/** Keeps only the fields `JsonWebKey` declares, dropping anything else the
+ * server response happens to carry. `res.json()` is cast to `Jwks` but
+ * TypeScript doesn't check that at runtime -- a future response shape
+ * (e.g. a key annotated with the requesting user's id) would otherwise
+ * flow straight into `localStorage`, which every script on the origin can
+ * read. Scrub before persisting rather than trusting the response shape. */
+function sanitizeForStorage(jwks: Jwks): Jwks {
+  return {
+    keys: jwks.keys.map(({ kid, kty, n, e }) => ({ kid, kty, n, e })),
+  };
+}
+
 function writeCache(jwks: Jwks): void {
   if (typeof localStorage === "undefined") return;
   try {
-    const entry: CacheEntry = { jwks, cachedAt: Date.now() };
+    const entry: CacheEntry = { jwks: sanitizeForStorage(jwks), cachedAt: Date.now() };
     localStorage.setItem(CACHE_KEY, JSON.stringify(entry));
   } catch {
     // localStorage can throw (private mode / quota exceeded) -- caching is
