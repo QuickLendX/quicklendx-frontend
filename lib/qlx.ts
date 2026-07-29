@@ -34,6 +34,20 @@ const MOCK_INVOICES: readonly Invoice[] = [
     status: "funded",
     dueAt: "2026-08-02",
   },
+  {
+    id: "inv_1003",
+    supplier: "Cedar Point Logistics",
+    amountStroops: 18_750_0000000n,
+    status: "open",
+    dueAt: "2026-08-20",
+  },
+  {
+    id: "inv_1004",
+    supplier: "Delta Grain Co",
+    amountStroops: 9_000_0000000n,
+    status: "repaid",
+    dueAt: "2026-07-10",
+  },
 ];
 
 /** Fetches every invoice owned by `userId`. Resolves to `[]` for a user with
@@ -42,6 +56,29 @@ const MOCK_INVOICES: readonly Invoice[] = [
 export async function getInvoicesForUser(userId: string): Promise<Invoice[]> {
   if (!userId) return [];
   return [...MOCK_INVOICES];
+}
+
+export interface InvoicePage {
+  invoices: Invoice[];
+  /** Opaque cursor for the next page, or `null` once there are no more
+   * invoices to fetch. Feed it back in as `cursor` to get the next page. */
+  nextCursor: string | null;
+}
+
+const DEFAULT_PAGE_SIZE = 10;
+
+/** Cursor-paginated read for `useInvoiceList`. `cursor` is an opaque
+ * invoice id -- omit it (or pass `null`) for the first page. */
+export async function getInvoicePage(
+  userId: string,
+  { cursor = null, limit = DEFAULT_PAGE_SIZE }: { cursor?: string | null; limit?: number } = {}
+): Promise<InvoicePage> {
+  const all = await getInvoicesForUser(userId);
+  const startIndex = cursor ? all.findIndex((invoice) => invoice.id === cursor) + 1 : 0;
+  const page = all.slice(startIndex, startIndex + limit);
+  const reachedEnd = startIndex + page.length >= all.length;
+
+  return { invoices: page, nextCursor: reachedEnd ? null : page[page.length - 1].id };
 }
 
 export interface InvoiceDetail {
@@ -86,4 +123,40 @@ export async function getInvoiceDetailsBatch(
   if (ids.length === 0) return new Map();
   await delay(SIMULATED_RPC_LATENCY_MS);
   return new Map(ids.map((id) => [id, detailFor(id)]));
+}
+
+export type TransactionKind = "funding" | "repayment";
+
+export interface Transaction {
+  id: string;
+  invoiceId: string;
+  kind: TransactionKind;
+  /** On-chain i128 stroops amount. Never convert to `number`. */
+  amountStroops: bigint;
+  occurredAt: string;
+}
+
+const MOCK_TRANSACTIONS: readonly Transaction[] = [
+  {
+    id: "txn_1",
+    invoiceId: "inv_1002",
+    kind: "funding",
+    amountStroops: 42_500_0000000n,
+    occurredAt: "2026-07-20T10:00:00.000Z",
+  },
+  {
+    id: "txn_2",
+    invoiceId: "inv_1002",
+    kind: "repayment",
+    amountStroops: 5_000_0000000n,
+    occurredAt: "2026-07-25T10:00:00.000Z",
+  },
+];
+
+/** Fetches every transaction for `invoiceId` through the qlx client
+ * boundary -- the `/api/transactions` route calls this directly rather
+ * than the route handler re-implementing its own ad-hoc fetch/lookup. */
+export async function getTransactionsForInvoice(invoiceId: string): Promise<Transaction[]> {
+  if (!invoiceId) return [];
+  return MOCK_TRANSACTIONS.filter((txn) => txn.invoiceId === invoiceId);
 }

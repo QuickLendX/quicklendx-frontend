@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { SessionResponse, SessionUser } from "@/lib/auth";
+import { fetchJson } from "@/lib/api";
 
 export interface UseSessionResult {
   user: SessionUser | null;
@@ -9,15 +10,20 @@ export interface UseSessionResult {
   error: string | null;
 }
 
-/** Fetches `/api/auth/session` and exposes it as typed state. */
+const IDLE: UseSessionResult = { user: null, loading: true, error: null };
+
+// Cached across mounts for the lifetime of the page. Every route under the
+// `(app)` layout remounts components that call `useSession`, so without
+// this a route change would re-pay the loading -> loaded render pass even
+// though the session hasn't changed. A transient failure is deliberately
+// not cached, so the next mount gets a fresh attempt instead of sticking.
+let cached: UseSessionResult | null = null;
+
 export function useSession(): UseSessionResult {
-  const [result, setResult] = useState<UseSessionResult>({
-    user: null,
-    loading: true,
-    error: null,
-  });
+  const [result, setResult] = useState<UseSessionResult>(() => cached ?? IDLE);
 
   useEffect(() => {
+    if (cached) return;
     let cancelled = false;
 
     fetch("/api/auth/session")
@@ -26,9 +32,9 @@ export function useSession(): UseSessionResult {
           throw new Error(`session request failed with status ${res.status}`);
         }
         const body = (await res.json()) as SessionResponse;
-        if (!cancelled) {
-          setResult({ user: body.user, loading: false, error: null });
-        }
+        const next: UseSessionResult = { user: body.user, loading: false, error: null };
+        cached = next;
+        if (!cancelled) setResult(next);
       })
       .catch((err: unknown) => {
         if (!cancelled) {
@@ -46,4 +52,10 @@ export function useSession(): UseSessionResult {
   }, []);
 
   return result;
+}
+
+/** Test-only: clears the module-level cache so each test starts from a
+ * clean slate instead of leaking a previous test's resolved session. */
+export function __resetSessionCacheForTests(): void {
+  cached = null;
 }
