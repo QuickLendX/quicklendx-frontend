@@ -75,4 +75,35 @@ describe("Sidebar", () => {
     expect(firstToggle).toHaveAttribute("aria-pressed", "true");
     expect(secondToggle).toHaveAttribute("aria-pressed", "true");
   });
+
+  it("surfaces the count of pending (untranslated) keys for es outside production", () => {
+    renderSidebar();
+
+    // es only translates nav.dashboard/nav.portfolio today (see
+    // lib/i18n/messages.ts) -- everything else in `en` is pending.
+    expect(screen.getByRole("status")).toHaveTextContent(/es: \d+ pending/);
+  });
+
+  it("hides the pending-translations notice in production", () => {
+    const original = process.env.NODE_ENV;
+    // @ts-expect-error -- NODE_ENV is readonly in the ambient types, but
+    // assignable at runtime; this is the standard way to test prod-only
+    // branches.
+    process.env.NODE_ENV = "production";
+
+    renderSidebar();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+
+    // @ts-expect-error -- see above
+    process.env.NODE_ENV = original;
+  });
+
+  it("hides the notice when collapsed, same as the rest of the nav content", async () => {
+    const user = userEvent.setup();
+    renderSidebar();
+
+    await user.click(screen.getByRole("button"));
+
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
 });
