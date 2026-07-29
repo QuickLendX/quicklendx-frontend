@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { EmptyState } from "@/components/EmptyState";
 import { formatStroops } from "@/lib/money";
 import type { Invoice } from "@/lib/qlx";
@@ -24,9 +25,11 @@ export function DashboardView({ invoices }: DashboardViewProps) {
     <ul aria-label="Invoices" className="invoice-list">
       {invoices.map((invoice) => (
         <li key={invoice.id}>
-          <span className="invoice-supplier">{invoice.supplier}</span>
-          <span className="invoice-amount">{formatStroops(invoice.amountStroops)} XLM</span>
-          <span className="invoice-status">{invoice.status}</span>
+          <Link href={`/dashboard/${invoice.id}`}>
+            <span className="invoice-supplier">{invoice.supplier}</span>
+            <span className="invoice-amount">{formatStroops(invoice.amountStroops)} XLM</span>
+            <span className="invoice-status">{invoice.status}</span>
+          </Link>
         </li>
       ))}
     </ul>

@@ -1,7 +1,39 @@
 import { describe, it, expect } from "vitest";
-import { getInvoiceDetail, getInvoiceDetailsBatch, getTransactionsForInvoice } from "./qlx";
+import { getInvoiceDetail, getInvoiceDetailsBatch, getInvoicePage } from "./qlx";
 
 const IDS = ["inv_a", "inv_b", "inv_c", "inv_d", "inv_e"];
+
+describe("getInvoicePage", () => {
+  it("returns the first page with a cursor for the next one", async () => {
+    const page = await getInvoicePage("demo-user", { limit: 2 });
+
+    expect(page.invoices).toHaveLength(2);
+    expect(page.nextCursor).toBe(page.invoices[1].id);
+  });
+
+  it("walks every invoice exactly once across pages", async () => {
+    const seen: string[] = [];
+    let cursor: string | null = null;
+
+    do {
+      const page: Awaited<ReturnType<typeof getInvoicePage>> = await getInvoicePage(
+        "demo-user",
+        { cursor, limit: 2 }
+      );
+      seen.push(...page.invoices.map((invoice) => invoice.id));
+      cursor = page.nextCursor;
+    } while (cursor !== null);
+
+    expect(new Set(seen).size).toBe(seen.length);
+    expect(seen.length).toBeGreaterThan(2);
+  });
+
+  it("returns a null cursor once the last page is reached", async () => {
+    const page = await getInvoicePage("demo-user", { limit: 100 });
+
+    expect(page.nextCursor).toBeNull();
+  });
+});
 
 describe("getInvoiceDetailsBatch", () => {
   it("returns a detail for every requested id", async () => {

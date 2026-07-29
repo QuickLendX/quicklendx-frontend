@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Transaction } from "@/lib/qlx";
+import { getTransactions } from "@/lib/generated/transactionsClient";
+import type { Transaction } from "@/lib/transactions";
 
 export interface UseTransactionsResult {
   transactions: Transaction[];
@@ -9,15 +10,11 @@ export interface UseTransactionsResult {
   error: string | null;
 }
 
-/** Wire shape of `Transaction`: `amountStroops` travels as a decimal string
- * since `JSON` has no bigint type, parsed back with `BigInt(...)` here
- * rather than `Number(...)` to avoid precision loss. */
-type TransactionWire = Omit<Transaction, "amountStroops"> & { amountStroops: string };
-
-/** Fetches `/api/transactions?invoiceId=...` and exposes it as typed
- * state -- the typed client for transaction data, replacing any ad-hoc
- * `fetch` a component would otherwise write inline. */
-export function useTransactions(invoiceId: string): UseTransactionsResult {
+/** Fetches transactions through the generated client instead of an ad-hoc
+ * `fetch("/api/transactions")`, so the response shape -- including the
+ * bigint <-> string amount conversion -- is typed and defined in one
+ * place rather than re-parsed at every call site. */
+export function useTransactions(): UseTransactionsResult {
   const [result, setResult] = useState<UseTransactionsResult>({
     transactions: [],
     loading: true,
@@ -27,19 +24,9 @@ export function useTransactions(invoiceId: string): UseTransactionsResult {
   useEffect(() => {
     let cancelled = false;
 
-    fetch(`/api/transactions?invoiceId=${encodeURIComponent(invoiceId)}`)
-      .then(async (res) => {
-        if (!res.ok) {
-          throw new Error(`transactions request failed with status ${res.status}`);
-        }
-        const body = (await res.json()) as { transactions: TransactionWire[] };
-        if (!cancelled) {
-          const transactions = body.transactions.map((txn) => ({
-            ...txn,
-            amountStroops: BigInt(txn.amountStroops),
-          }));
-          setResult({ transactions, loading: false, error: null });
-        }
+    getTransactions()
+      .then((transactions) => {
+        if (!cancelled) setResult({ transactions, loading: false, error: null });
       })
       .catch((err: unknown) => {
         if (!cancelled) {
@@ -54,7 +41,7 @@ export function useTransactions(invoiceId: string): UseTransactionsResult {
     return () => {
       cancelled = true;
     };
-  }, [invoiceId]);
+  }, []);
 
   return result;
 }
