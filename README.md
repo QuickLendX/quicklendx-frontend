@@ -31,6 +31,18 @@ business logic.
 | ------------- | -------- | ------- | --------------------------------------------------------------------------- |
 | `SENTRY_DSN`  | No       | `""`    | Sentry DSN for error tracking. When empty, Sentry is disabled.              |
 
+## Mock API server for local dev
+
+`npm run mock:api` starts a standalone HTTP server (`scripts/mock-server.mjs`)
+serving canned JSON for the same paths as the real API routes under
+`app/api/` (`/api/auth/session`, `/api/alerts`), on
+`http://localhost:4000` by default. Override the port with `MOCK_API_PORT`.
+
+This is a one-command way to exercise the API surface (e.g. with `curl`, or
+from another tool) without booting the full Next dev server. It's separate
+from the [MSW handlers](#testing-auth-backed-code) used in tests -- those
+intercept requests inside the test runner, they don't listen on a real port.
+
 ## Testing auth-backed code
 
 `mocks/handlers.ts` holds [MSW](https://mswjs.io) request handlers for the

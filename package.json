@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "mock:api": "node scripts/mock-server.mjs"
   },
   "dependencies": {
     "next": "15.1.6",
