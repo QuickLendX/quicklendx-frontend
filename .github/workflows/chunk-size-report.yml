@@ -1,0 +1,50 @@
+name: Chunk size report
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  report-chunk-sizes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Post largest chunk sizes to the PR
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const fs = require("fs");
+            const path = require("path");
+
+            const dir = path.join(".next", "static", "chunks");
+            const files = fs.existsSync(dir) ? fs.readdirSync(dir) : [];
+
+            const chunks = files
+              .filter((file) => file.endsWith(".js"))
+              .map((file) => ({ file, bytes: fs.statSync(path.join(dir, file)).size }))
+              .sort((a, b) => b.bytes - a.bytes)
+              .slice(0, 5);
+
+            const rows = chunks
+              .map((c) => `| \`${c.file}\` | ${(c.bytes / 1024).toFixed(1)} KB |`)
+              .join("\n");
+            const table = chunks.length
+              ? `| Chunk | Size |\n| --- | --- |\n${rows}`
+              : "No chunk output found.";
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `### Largest JS chunks\n\n${table}`,
+            });

@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { formatStroops, STROOPS_PER_XLM } from "./money";
+import {
+  formatStroops,
+  parseInvoiceAmount,
+  INVOICE_AMOUNT_MAX_STROOPS,
+  STROOPS_PER_XLM,
+} from "./money";
 
 describe("formatStroops", () => {
   it("formats a whole XLM amount", () => {
@@ -22,5 +27,37 @@ describe("formatStroops", () => {
     const huge = 10n ** 30n;
     const expectedWhole = (10n ** 30n / STROOPS_PER_XLM).toString();
     expect(formatStroops(huge)).toBe(`${expectedWhole}.0000000`);
+  });
+});
+
+describe("parseInvoiceAmount", () => {
+  it("parses a whole XLM amount", () => {
+    expect(parseInvoiceAmount("12")).toEqual({ ok: true, amountStroops: 12n * STROOPS_PER_XLM });
+  });
+
+  it("parses a fractional amount", () => {
+    expect(parseInvoiceAmount("0.5")).toEqual({ ok: true, amountStroops: STROOPS_PER_XLM / 2n });
+  });
+
+  it("accepts an amount exactly at the i128 max", () => {
+    expect(parseInvoiceAmount(formatStroops(INVOICE_AMOUNT_MAX_STROOPS))).toEqual({
+      ok: true,
+      amountStroops: INVOICE_AMOUNT_MAX_STROOPS,
+    });
+  });
+
+  it("rejects an amount one stroop past the i128 max", () => {
+    const result = parseInvoiceAmount(formatStroops(INVOICE_AMOUNT_MAX_STROOPS + 1n));
+    expect(result.ok).toBe(false);
+  });
+
+  it("rejects non-numeric input", () => {
+    const result = parseInvoiceAmount("not a number");
+    expect(result.ok).toBe(false);
+  });
+
+  it("rejects a negative amount", () => {
+    const result = parseInvoiceAmount("-5");
+    expect(result.ok).toBe(false);
   });
 });
