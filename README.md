@@ -59,6 +59,9 @@ app/
   globals.css   # design tokens (light + dark)
 ```
 
+See [`docs/wallet-connection-state-machine.md`](docs/wallet-connection-state-machine.md)
+for the states/transitions wallet login should implement.
+
 ## Contributing
 
 See the QuickLendX org for the contribution rules and the FWC26 campaign board. Every PR must reference the issue it closes with `Closes #<n>`.
