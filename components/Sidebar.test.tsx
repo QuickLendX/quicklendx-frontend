@@ -1,8 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { Sidebar } from "./Sidebar";
 import { SidebarProvider } from "./SidebarProvider";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 function renderSidebar() {
   return render(
@@ -74,5 +78,19 @@ describe("Sidebar", () => {
 
     expect(firstToggle).toHaveAttribute("aria-pressed", "true");
     expect(secondToggle).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("logs a route-preload hint at debug (not info) on nav-link hover", async () => {
+    const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+    const user = userEvent.setup();
+    renderSidebar();
+
+    await user.hover(screen.getByRole("link", { name: "Portfolio" }));
+
+    expect(debugSpy).toHaveBeenCalledTimes(1);
+    expect(infoSpy).not.toHaveBeenCalled();
+    const parsed = JSON.parse(debugSpy.mock.calls[0][0] as string);
+    expect(parsed).toMatchObject({ level: "debug", event: "route_preload", href: "/portfolio" });
   });
 });
