@@ -1,4 +1,3 @@
-import { Sidebar } from "@/components/Sidebar";
 import { getInvoiceDetailsBatch, getInvoicesForUser } from "@/lib/qlx";
 import { PortfolioView, type PortfolioRow } from "./PortfolioView";
 
@@ -15,12 +14,9 @@ export default async function PortfolioPage() {
   }));
 
   return (
-    <div className="app-shell">
-      <Sidebar />
-      <main>
-        <h1>Portfolio</h1>
-        <PortfolioView rows={rows} />
-      </main>
-    </div>
+    <>
+      <h1>Portfolio</h1>
+      <PortfolioView rows={rows} />
+    </>
   );
 }

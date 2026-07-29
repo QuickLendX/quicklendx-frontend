@@ -1,4 +1,3 @@
-import { Sidebar } from "@/components/Sidebar";
 import { getInvoicesForUser } from "@/lib/qlx";
 import { DashboardView } from "./DashboardView";
 
@@ -9,12 +8,9 @@ export default async function DashboardPage() {
   const invoices = await getInvoicesForUser(DEMO_USER_ID);
 
   return (
-    <div className="app-shell">
-      <Sidebar />
-      <main>
-        <h1>Dashboard</h1>
-        <DashboardView invoices={invoices} />
-      </main>
-    </div>
+    <>
+      <h1>Dashboard</h1>
+      <DashboardView invoices={invoices} />
+    </>
   );
 }
