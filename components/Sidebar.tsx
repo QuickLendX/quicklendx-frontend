@@ -6,6 +6,7 @@ import { useSidebar } from "./SidebarProvider";
 const NAV_LINKS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/portfolio", label: "Portfolio" },
+  { href: "/settings", label: "Settings" },
 ];
 
 /** Primary app navigation with a collapse toggle. Collapse state lives in
