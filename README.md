@@ -19,6 +19,36 @@ npm run dev
 | `npm run start`   | Serve the production build                     |
 | `npm run lint`    | ESLint (Next.js core-web-vitals + TS presets)  |
 | `npm run typecheck` | `tsc --noEmit`                               |
+| `npm test`        | vitest + React Testing Library                 |
+
+## Environment variables
+
+Copy `.env.example` to `.env.local` and fill in values. All runtime env vars
+are read through `lib/config.ts` — never access `process.env` directly in
+business logic.
+
+| Variable      | Required | Default | Description                                                                 |
+| ------------- | -------- | ------- | --------------------------------------------------------------------------- |
+| `SENTRY_DSN`  | No       | `""`    | Sentry DSN for error tracking. When empty, Sentry is disabled.              |
+
+## Testing auth-backed code
+
+`mocks/handlers.ts` holds [MSW](https://mswjs.io) request handlers for the
+auth endpoints (`/api/auth/session` for now), started/stopped globally in
+`test/setup.ts`. Any test that renders a component or hook calling those
+endpoints gets the default (signed-out) response automatically — no manual
+`fetch` mocking needed. To exercise a different response in one test, use
+`server.use(...)`:
+
+```ts
+import { server } from "../../mocks/server";
+import { signedInSessionHandlers } from "../../mocks/handlers";
+
+server.use(...signedInSessionHandlers);
+```
+
+See `lib/hooks/useSession.test.ts` for the full pattern, including an
+explicit-failure case via `server.use(http.get(..., () => new HttpResponse(...)))`.
 
 ## Layout
 
