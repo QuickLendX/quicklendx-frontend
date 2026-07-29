@@ -59,6 +59,13 @@ app/
   globals.css   # design tokens (light + dark)
 ```
 
+## Routing errors
+
+Unexpected route failures render a visible full-page fallback instead of a
+blank screen. The fallback lives in [`app/error.tsx`](./app/error.tsx) and
+reuses [`components/RouteError.tsx`](./components/RouteError.tsx) so the
+user gets one clear recovery action: retry the route.
+
 ## Contributing
 
 See the QuickLendX org for the contribution rules and the FWC26 campaign board. Every PR must reference the issue it closes with `Closes #<n>`.
