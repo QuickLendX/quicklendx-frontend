@@ -43,3 +43,47 @@ export async function getInvoicesForUser(userId: string): Promise<Invoice[]> {
   if (!userId) return [];
   return [...MOCK_INVOICES];
 }
+
+export interface InvoiceDetail {
+  id: string;
+  riskScore: number;
+  fundedAmountStroops: bigint;
+}
+
+const MOCK_DETAILS: Readonly<Record<string, InvoiceDetail>> = {
+  inv_1001: { id: "inv_1001", riskScore: 18, fundedAmountStroops: 0n },
+  inv_1002: { id: "inv_1002", riskScore: 42, fundedAmountStroops: 42_500_0000000n },
+};
+
+function detailFor(id: string): InvoiceDetail {
+  return MOCK_DETAILS[id] ?? { id, riskScore: 50, fundedAmountStroops: 0n };
+}
+
+/** Stands in for one simulated RPC round trip's latency, so batching vs.
+ * per-item lookups has a real, measurable timing difference in tests
+ * instead of both finishing instantly regardless of call shape. */
+const SIMULATED_RPC_LATENCY_MS = 20;
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Looks up risk/funding detail for a single invoice. Prefer
+ * {@link getInvoiceDetailsBatch} when you need more than one -- each call
+ * here is its own simulated RPC round trip. */
+export async function getInvoiceDetail(id: string): Promise<InvoiceDetail> {
+  await delay(SIMULATED_RPC_LATENCY_MS);
+  return detailFor(id);
+}
+
+/** Looks up risk/funding detail for every id in `ids` in a single simulated
+ * RPC round trip, instead of one round trip per id (see #90) -- the portfolio
+ * view's invoice count would otherwise make load time scale linearly with
+ * portfolio size. */
+export async function getInvoiceDetailsBatch(
+  ids: readonly string[]
+): Promise<Map<string, InvoiceDetail>> {
+  if (ids.length === 0) return new Map();
+  await delay(SIMULATED_RPC_LATENCY_MS);
+  return new Map(ids.map((id) => [id, detailFor(id)]));
+}
