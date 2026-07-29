@@ -19,12 +19,28 @@ describe("Sidebar", () => {
 
     const toggle = screen.getByRole("button");
     expect(toggle).toHaveAttribute("aria-pressed", "false");
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("link", { name: "Dashboard" })).toBeInTheDocument();
 
     await user.click(toggle);
 
     expect(toggle).toHaveAttribute("aria-pressed", "true");
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("link", { name: "Dashboard" })).not.toBeInTheDocument();
+  });
+
+  it("keeps the primary navigation in a predictable tab order when expanded", async () => {
+    const user = userEvent.setup();
+    renderSidebar();
+
+    await user.tab();
+    expect(screen.getByRole("button")).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole("link", { name: "Dashboard" })).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole("link", { name: "Portfolio" })).toHaveFocus();
   });
 
   it("throws when rendered outside a SidebarProvider", () => {
