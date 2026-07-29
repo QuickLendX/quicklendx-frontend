@@ -19,4 +19,25 @@ describe("config", () => {
     const { default: config } = await import("./config");
     expect(config.sentryDsn).toBe("");
   });
+
+  it("returns the STELLAR_NETWORK value when set to a recognized network", async () => {
+    vi.stubEnv("STELLAR_NETWORK", "mainnet");
+    vi.resetModules();
+    const { default: config } = await import("./config");
+    expect(config.stellarNetwork).toBe("mainnet");
+  });
+
+  it("defaults stellarNetwork to testnet when STELLAR_NETWORK is unset", async () => {
+    vi.stubEnv("STELLAR_NETWORK", undefined);
+    vi.resetModules();
+    const { default: config } = await import("./config");
+    expect(config.stellarNetwork).toBe("testnet");
+  });
+
+  it("defaults stellarNetwork to testnet when STELLAR_NETWORK is unrecognized", async () => {
+    vi.stubEnv("STELLAR_NETWORK", "devnet");
+    vi.resetModules();
+    const { default: config } = await import("./config");
+    expect(config.stellarNetwork).toBe("testnet");
+  });
 });

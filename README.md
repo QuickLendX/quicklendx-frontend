@@ -27,9 +27,10 @@ Copy `.env.example` to `.env.local` and fill in values. All runtime env vars
 are read through `lib/config.ts` — never access `process.env` directly in
 business logic.
 
-| Variable      | Required | Default | Description                                                                 |
-| ------------- | -------- | ------- | --------------------------------------------------------------------------- |
-| `SENTRY_DSN`  | No       | `""`    | Sentry DSN for error tracking. When empty, Sentry is disabled.              |
+| Variable      | Required | Default     | Description                                                                 |
+| ------------- | -------- | ----------- | --------------------------------------------------------------------------- |
+| `SENTRY_DSN`  | No       | `""`        | Sentry DSN for error tracking. When empty, Sentry is disabled.              |
+| `STELLAR_NETWORK` | No   | `"testnet"` | Which Stellar network the client targets: `testnet` or `mainnet`. Unset or unrecognized values fall back to `testnet`. |
 
 ## Testing auth-backed code
 
