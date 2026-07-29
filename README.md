@@ -113,6 +113,11 @@ blank screen. The fallback lives in [`app/error.tsx`](./app/error.tsx) and
 reuses [`components/RouteError.tsx`](./components/RouteError.tsx) so the
 user gets one clear recovery action: retry the route.
 
+## Documentation
+
+- [Client/server component boundary](./docs/client-server-boundary.md) -- when a component needs `"use client"`, with real examples from this repo.
+- [Wallet connection state machine](./docs/wallet-connection-state-machine.md)
+
 ## Contributing
 
 See the QuickLendX org for the contribution rules and the FWC26 campaign board. Every PR must reference the issue it closes with `Closes #<n>`.
