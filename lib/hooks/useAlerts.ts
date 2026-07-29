@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Alert } from "@/lib/alerts";
+import { fetchJson } from "@/lib/api";
 
 export interface UseAlertsResult {
   alerts: Alert[];
@@ -22,12 +23,8 @@ export function useAlerts(): UseAlertsResult {
   useEffect(() => {
     let cancelled = false;
 
-    fetch("/api/alerts")
-      .then(async (res) => {
-        if (!res.ok) {
-          throw new Error(`alerts request failed with status ${res.status}`);
-        }
-        const body = (await res.json()) as { alerts: Alert[] };
+    fetchJson<{ alerts: Alert[] }>("/api/alerts", "alerts")
+      .then((body) => {
         if (!cancelled) {
           setResult({ alerts: body.alerts, loading: false, error: null });
         }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { SessionResponse, SessionUser } from "@/lib/auth";
+import { fetchJson } from "@/lib/api";
 
 export interface UseSessionResult {
   user: SessionUser | null;
@@ -20,12 +21,8 @@ export function useSession(): UseSessionResult {
   useEffect(() => {
     let cancelled = false;
 
-    fetch("/api/auth/session")
-      .then(async (res) => {
-        if (!res.ok) {
-          throw new Error(`session request failed with status ${res.status}`);
-        }
-        const body = (await res.json()) as SessionResponse;
+    fetchJson<SessionResponse>("/api/auth/session", "session")
+      .then((body) => {
         if (!cancelled) {
           setResult({ user: body.user, loading: false, error: null });
         }
