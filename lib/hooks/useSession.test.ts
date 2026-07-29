@@ -1,11 +1,15 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
-import { describe, it, expect } from "vitest";
-import { useSession } from "./useSession";
+import { describe, it, expect, beforeEach } from "vitest";
+import { useSession, __resetSessionCacheForTests } from "./useSession";
 import { server } from "../../mocks/server";
 import { signedInSessionHandlers } from "../../mocks/handlers";
 
 describe("useSession", () => {
+  beforeEach(() => {
+    __resetSessionCacheForTests();
+  });
+
   it("resolves to a signed-out session by default (the MSW default handler)", async () => {
     const { result } = renderHook(() => useSession());
 
@@ -38,5 +42,19 @@ describe("useSession", () => {
 
     expect(result.current.user).toBeNull();
     expect(result.current.error).toBe("session request failed with status 500");
+  });
+
+  it("renders the settled result immediately on a second mount, with no loading flash (#128)", async () => {
+    const first = renderHook(() => useSession());
+    await waitFor(() => expect(first.result.current.loading).toBe(false));
+    first.unmount();
+
+    const second = renderHook(() => useSession());
+
+    // No `waitFor` here: the second mount must already be settled on its
+    // very first render, since the fetch it would otherwise trigger is
+    // skipped in favor of the cached result from the first mount.
+    expect(second.result.current.loading).toBe(false);
+    expect(second.result.current.user).toBeNull();
   });
 });
