@@ -21,6 +21,10 @@ npm run dev
 | `npm run typecheck` | `tsc --noEmit`                               |
 | `npm test`        | vitest + React Testing Library                 |
 
+If you have [`just`](https://github.com/casey/just) installed, `just typecheck`
+is a shorthand for `npm run typecheck` (see the `Justfile`). It's optional —
+every recipe just wraps an existing npm script, so `just` is never required.
+
 ## Environment variables
 
 Copy `.env.example` to `.env.local` and fill in values. All runtime env vars
