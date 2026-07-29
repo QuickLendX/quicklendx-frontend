@@ -33,4 +33,16 @@ describe("log", () => {
     expect(warnSpy).toHaveBeenCalledTimes(1);
     expect(errorSpy).toHaveBeenCalledTimes(1);
   });
+
+  it("routes debug to console.debug, not console.info", () => {
+    const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+
+    log("debug", "route_preload", { href: "/portfolio" });
+
+    expect(debugSpy).toHaveBeenCalledTimes(1);
+    expect(infoSpy).not.toHaveBeenCalled();
+    const parsed = JSON.parse(debugSpy.mock.calls[0][0] as string);
+    expect(parsed).toMatchObject({ level: "debug", event: "route_preload", href: "/portfolio" });
+  });
 });
