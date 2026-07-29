@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { PortfolioView, type PortfolioRow } from "./PortfolioView";
+import * as portfolioLib from "@/lib/portfolio";
 import type { Invoice, InvoiceDetail } from "@/lib/qlx";
 
 const invoice: Invoice = {
@@ -33,5 +34,31 @@ describe("PortfolioView", () => {
     expect(screen.getByText("Acme Textiles")).toBeInTheDocument();
     expect(screen.getByText("Risk 18")).toBeInTheDocument();
     expect(screen.getByText("5.0000000 XLM funded")).toBeInTheDocument();
+  });
+
+  it("shows the highest-risk row first", () => {
+    const lowRisk: PortfolioRow = {
+      invoice: { ...invoice, id: "inv_low", supplier: "Low Risk Co" },
+      detail: { ...detail, id: "inv_low", riskScore: 5 },
+    };
+    const highRisk: PortfolioRow = {
+      invoice: { ...invoice, id: "inv_high", supplier: "High Risk Co" },
+      detail: { ...detail, id: "inv_high", riskScore: 95 },
+    };
+    render(<PortfolioView rows={[lowRisk, highRisk]} />);
+
+    const suppliers = screen.getAllByText(/Risk Co$/).map((el) => el.textContent);
+    expect(suppliers).toEqual(["High Risk Co", "Low Risk Co"]);
+  });
+
+  it("does not re-run the sort when the rows array reference is unchanged", () => {
+    const sortSpy = vi.spyOn(portfolioLib, "sortRowsByRisk");
+    const rows: PortfolioRow[] = [{ invoice, detail }];
+
+    const { rerender } = render(<PortfolioView rows={rows} />);
+    rerender(<PortfolioView rows={rows} />);
+
+    expect(sortSpy).toHaveBeenCalledTimes(1);
+    sortSpy.mockRestore();
   });
 });

@@ -94,4 +94,23 @@ describe("getJwks", () => {
     await expect(getJwks()).rejects.toThrow("jwks fetch failed with status 500");
     expect(localStorage.getItem("qlx_jwks_cache_v1")).toBeNull();
   });
+
+  it("scrubs unexpected fields from a key before persisting to localStorage", async () => {
+    const leakyResponse = {
+      keys: [
+        { kid: "k1", kty: "RSA", n: "mod", e: "AQAB", ownerId: "user_42", email: "user@example.com" },
+      ],
+    };
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify(leakyResponse), { status: 200 })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getJwks();
+
+    const raw = localStorage.getItem("qlx_jwks_cache_v1");
+    expect(raw).not.toBeNull();
+    expect(raw).not.toContain("user_42");
+    expect(raw).not.toContain("user@example.com");
+  });
 });
