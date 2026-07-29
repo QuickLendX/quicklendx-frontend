@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { SessionResponse, SessionUser } from "@/lib/auth";
+import { fetchJson } from "@/lib/api";
 
 export interface UseSessionResult {
   user: SessionUser | null;
