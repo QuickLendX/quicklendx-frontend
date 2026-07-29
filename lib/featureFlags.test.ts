@@ -1,28 +1,32 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { FEATURE_FLAG_ENV_KEYS, isFeatureEnabled } from "./featureFlags";
+import { describe, it, expect, vi, afterEach } from "vitest";
 
-const ENV_KEY = FEATURE_FLAG_ENV_KEYS.newDashboardLayout;
-const ORIGINAL = process.env[ENV_KEY];
+const ENV_KEY = "NEXT_PUBLIC_FEATURE_NEW_DASHBOARD_LAYOUT";
 
 afterEach(() => {
-  if (ORIGINAL === undefined) delete process.env[ENV_KEY];
-  else process.env[ENV_KEY] = ORIGINAL;
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
 });
 
 describe("isFeatureEnabled", () => {
-  it("is disabled when the env var is unset", () => {
-    delete process.env[ENV_KEY];
+  it("is disabled when the env var is unset", async () => {
+    vi.stubEnv(ENV_KEY, undefined);
+    vi.resetModules();
+    const { isFeatureEnabled } = await import("./featureFlags");
     expect(isFeatureEnabled("newDashboardLayout")).toBe(false);
   });
 
-  it("is enabled only for the exact string \"true\"", () => {
-    process.env[ENV_KEY] = "true";
+  it('is enabled only for the exact string "true"', async () => {
+    vi.stubEnv(ENV_KEY, "true");
+    vi.resetModules();
+    const { isFeatureEnabled } = await import("./featureFlags");
     expect(isFeatureEnabled("newDashboardLayout")).toBe(true);
   });
 
-  it("is disabled for any other value, including truthy-looking ones", () => {
+  it("is disabled for any other value, including truthy-looking ones", async () => {
     for (const value of ["1", "TRUE", "yes", "false", ""]) {
-      process.env[ENV_KEY] = value;
+      vi.stubEnv(ENV_KEY, value);
+      vi.resetModules();
+      const { isFeatureEnabled } = await import("./featureFlags");
       expect(isFeatureEnabled("newDashboardLayout")).toBe(false);
     }
   });
