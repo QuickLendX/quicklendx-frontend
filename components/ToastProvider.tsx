@@ -1,6 +1,14 @@
 "use client";
 
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { log } from "@/lib/logger";
 
 export interface Toast {
@@ -9,6 +17,9 @@ export interface Toast {
 }
 
 export type DismissReason = "manual" | "auto";
+
+/** Toasts auto-dismiss after this long unless manually dismissed first. */
+const AUTO_DISMISS_MS = 5000;
 
 interface ToastContextValue {
   toasts: Toast[];
@@ -21,22 +32,56 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const nextId = useRef(0);
+  // Pending auto-dismiss timers, keyed by toast id. Tracked so they can be
+  // cleared individually (manual dismiss) or all at once on unmount --
+  // otherwise a timer fires `dismissToast` on state that no longer exists,
+  // leaking the timer for the lifetime of the page.
+  const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
-  const dismissToast = useCallback((id: string, reason: DismissReason) => {
-    setToasts((current) => {
-      const existed = current.some((toast) => toast.id === id);
-      if (existed) {
-        // Log the id and dismiss reason only -- never the toast's message,
-        // which may contain arbitrary (and possibly sensitive) UI text.
-        log("info", "toast_dismissed", { toastId: id, reason });
-      }
-      return current.filter((toast) => toast.id !== id);
-    });
+  const clearTimer = useCallback((id: string) => {
+    const timer = timers.current.get(id);
+    if (timer !== undefined) {
+      clearTimeout(timer);
+      timers.current.delete(id);
+    }
   }, []);
 
-  const showToast = useCallback((message: string) => {
-    const id = `toast_${nextId.current++}`;
-    setToasts((current) => [...current, { id, message }]);
+  const dismissToast = useCallback(
+    (id: string, reason: DismissReason) => {
+      clearTimer(id);
+      setToasts((current) => {
+        const existed = current.some((toast) => toast.id === id);
+        if (existed) {
+          // Log the id and dismiss reason only -- never the toast's message,
+          // which may contain arbitrary (and possibly sensitive) UI text.
+          log("info", "toast_dismissed", { toastId: id, reason });
+        }
+        return current.filter((toast) => toast.id !== id);
+      });
+    },
+    [clearTimer]
+  );
+
+  const showToast = useCallback(
+    (message: string) => {
+      const id = `toast_${nextId.current++}`;
+      setToasts((current) => [...current, { id, message }]);
+      timers.current.set(
+        id,
+        setTimeout(() => dismissToast(id, "auto"), AUTO_DISMISS_MS)
+      );
+    },
+    [dismissToast]
+  );
+
+  // Clear every pending auto-dismiss timer on unmount so none of them fire
+  // (and call setState) after this provider is gone.
+  useEffect(() => {
+    const timersAtMount = timers.current;
+    return () => {
+      timersAtMount.forEach((timer) => clearTimeout(timer));
+      timersAtMount.clear();
+    };
   }, []);
 
   return (
