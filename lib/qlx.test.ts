@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getInvoiceDetail, getInvoiceDetailsBatch } from "./qlx";
+import { getInvoiceDetail, getInvoiceDetailsBatch, getTransactionsForInvoice } from "./qlx";
 
 const IDS = ["inv_a", "inv_b", "inv_c", "inv_d", "inv_e"];
 
@@ -37,5 +37,21 @@ describe("getInvoiceDetailsBatch", () => {
     // sequential loop pays one round trip per id -- with 5 ids that's a
     // comfortable, non-flaky margin to assert on.
     expect(batchElapsed).toBeLessThan(sequentialElapsed / 2);
+  });
+});
+
+describe("getTransactionsForInvoice", () => {
+  it("returns only transactions for the given invoice", async () => {
+    const transactions = await getTransactionsForInvoice("inv_1002");
+    expect(transactions.length).toBeGreaterThan(0);
+    expect(transactions.every((txn) => txn.invoiceId === "inv_1002")).toBe(true);
+  });
+
+  it("resolves to an empty list for an invoice with no transactions", async () => {
+    expect(await getTransactionsForInvoice("inv_does_not_exist")).toEqual([]);
+  });
+
+  it("resolves to an empty list for an empty invoiceId", async () => {
+    expect(await getTransactionsForInvoice("")).toEqual([]);
   });
 });
