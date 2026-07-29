@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   formatStroops,
   parseInvoiceAmount,
+  parseCurrencyAmount,
   INVOICE_AMOUNT_MAX_STROOPS,
   STROOPS_PER_XLM,
 } from "./money";
@@ -58,6 +59,26 @@ describe("parseInvoiceAmount", () => {
 
   it("rejects a negative amount", () => {
     const result = parseInvoiceAmount("-5");
+    expect(result.ok).toBe(false);
+  });
+});
+
+describe("parseCurrencyAmount", () => {
+  it("accepts a whole amount", () => {
+    expect(parseCurrencyAmount("100")).toEqual({ ok: true, value: "100" });
+  });
+
+  it("accepts exactly 2 decimal places", () => {
+    expect(parseCurrencyAmount(" 12.34 ")).toEqual({ ok: true, value: "12.34" });
+  });
+
+  it("rejects more than 2 decimal places", () => {
+    const result = parseCurrencyAmount("12.345");
+    expect(result.ok).toBe(false);
+  });
+
+  it("rejects non-numeric input", () => {
+    const result = parseCurrencyAmount("abc");
     expect(result.ok).toBe(false);
   });
 });
