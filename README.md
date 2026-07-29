@@ -30,6 +30,7 @@ business logic.
 | Variable      | Required | Default | Description                                                                 |
 | ------------- | -------- | ------- | --------------------------------------------------------------------------- |
 | `SENTRY_DSN`  | No       | `""`    | Sentry DSN for error tracking. When empty, Sentry is disabled.              |
+| `DEFAULT_LOCALE` | No    | `"en"`  | App-wide default locale. An unset or unrecognized value falls back to `"en"`. |
 
 ## Testing auth-backed code
 
