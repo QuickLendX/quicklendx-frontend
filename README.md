@@ -59,6 +59,19 @@ app/
   globals.css   # design tokens (light + dark)
 ```
 
+## Accessibility baseline
+
+The authenticated shell keeps keyboard navigation predictable:
+
+- The primary sidebar toggle is always first in the tab order.
+- When the sidebar is expanded, the `/dashboard` and `/portfolio` links
+  follow immediately after the toggle.
+- When the sidebar is collapsed, those links are removed from the focus
+  order instead of staying hidden but still tabbable.
+
+`components/Sidebar.test.tsx` pins this behavior so future changes do not
+accidentally break the focus order.
+
 ## Contributing
 
 See the QuickLendX org for the contribution rules and the FWC26 campaign board. Every PR must reference the issue it closes with `Closes #<n>`.
