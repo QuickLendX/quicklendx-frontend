@@ -59,6 +59,9 @@ app/
   globals.css   # design tokens (light + dark)
 ```
 
+See [`docs/client-server-boundary.md`](docs/client-server-boundary.md) for
+when a component needs `"use client"` versus staying a Server Component.
+
 ## Contributing
 
 See the QuickLendX org for the contribution rules and the FWC26 campaign board. Every PR must reference the issue it closes with `Closes #<n>`.
