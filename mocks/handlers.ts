@@ -1,5 +1,6 @@
 import { http, HttpResponse } from "msw";
 import type { SessionResponse } from "@/lib/auth";
+import { MOCK_TRANSACTIONS } from "@/lib/transactions";
 
 const SIGNED_OUT: SessionResponse = { user: null };
 
@@ -20,4 +21,25 @@ export const signedInSessionHandlers = [
   http.get("/api/auth/session", () => HttpResponse.json(SIGNED_IN)),
 ];
 
-export const handlers = [...authHandlers];
+/** Default handler for the on-chain transactions read layer
+ * (`/api/transactions`, backing `getTransactions()` in
+ * `lib/generated/transactionsClient.ts`). `amountStroops` is wire-encoded
+ * as a string here, matching the real route handler -- JSON has no bigint. */
+export const transactionsHandlers = [
+  http.get("/api/transactions", () =>
+    HttpResponse.json({
+      transactions: MOCK_TRANSACTIONS.map((txn) => ({
+        ...txn,
+        amountStroops: txn.amountStroops.toString(),
+      })),
+    })
+  ),
+];
+
+/** Convenience override for tests that need an empty transactions response:
+ * `server.use(...emptyTransactionsHandlers)`. */
+export const emptyTransactionsHandlers = [
+  http.get("/api/transactions", () => HttpResponse.json({ transactions: [] })),
+];
+
+export const handlers = [...authHandlers, ...transactionsHandlers];
