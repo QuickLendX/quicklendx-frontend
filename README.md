@@ -21,6 +21,7 @@ npm run dev
 | `npm run lint`    | ESLint (Next.js core-web-vitals + TS presets)  |
 | `npm run typecheck` | `tsc --noEmit`                               |
 | `npm test`        | vitest + React Testing Library                 |
+| `npm run check`   | Runs lint, typecheck, and test in sequence — one command before pushing |
 
 If you have [`just`](https://github.com/casey/just) installed, `just typecheck`
 is a shorthand for `npm run typecheck` (see the `Justfile`). It's optional —
