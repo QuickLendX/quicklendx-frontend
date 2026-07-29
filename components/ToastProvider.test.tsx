@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { useEffect } from "react";
@@ -59,5 +59,42 @@ describe("ToastProvider / useToast", () => {
     }
 
     expect(() => render(<Consumer />)).toThrow("useToast must be used within a ToastProvider");
+  });
+
+  it("auto-dismisses a toast after the timeout", () => {
+    vi.useFakeTimers();
+    render(
+      <ToastProvider>
+        <ShowOnMount message="Invoice funded" />
+      </ToastProvider>
+    );
+
+    expect(screen.getByText("Invoice funded")).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    expect(screen.queryByText("Invoice funded")).not.toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
+  it("clears the pending auto-dismiss timer on unmount, so it never fires afterwards", () => {
+    vi.useFakeTimers();
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const { unmount } = render(
+      <ToastProvider>
+        <ShowOnMount message="Invoice funded" />
+      </ToastProvider>
+    );
+
+    unmount();
+
+    // If the timer were not cleared, this would call setState on the
+    // now-unmounted provider and React would log an act()/state-update warning.
+    expect(() => vi.advanceTimersByTime(10_000)).not.toThrow();
+    expect(errorSpy).not.toHaveBeenCalled();
+    vi.useRealTimers();
   });
 });
