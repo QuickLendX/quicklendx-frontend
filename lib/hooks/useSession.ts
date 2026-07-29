@@ -58,3 +58,19 @@ export function useSession(): UseSessionResult {
 export function __resetSessionCacheForTests(): void {
   cached = null;
 }
+
+/**
+ * Wipes locally-held session and form state on logout. A shared/kiosk
+ * device signing out must not leave a later user able to read a prior
+ * session's cached data or an in-progress form draft, so this clears the
+ * in-memory session cache *and* every `sessionStorage`/`localStorage` key
+ * -- not just the ones this module knows about -- rather than trying to
+ * enumerate every form that might have persisted a draft.
+ */
+export function logout(): void {
+  cached = null;
+  if (typeof window !== "undefined") {
+    window.sessionStorage.clear();
+    window.localStorage.clear();
+  }
+}
