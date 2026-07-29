@@ -50,6 +50,34 @@ server.use(...signedInSessionHandlers);
 See `lib/hooks/useSession.test.ts` for the full pattern, including an
 explicit-failure case via `server.use(http.get(..., () => new HttpResponse(...)))`.
 
+## Theme tokens
+
+All color values live as CSS custom properties on `:root` in
+[`app/globals.css`](./app/globals.css) -- never hardcode a hex value in a
+component or module stylesheet.
+
+| Token         | Purpose                                    |
+| ------------- | ------------------------------------------- |
+| `--bg`        | Page background                             |
+| `--surface`   | Raised surfaces (cards, panels)             |
+| `--text`      | Primary text color                          |
+| `--muted`     | Secondary text (descriptions, labels)       |
+| `--accent`    | Primary interactive color (buttons, links)  |
+| `--accent-fg` | Text/icon color on top of `--accent`        |
+| `--border`    | Hairline borders and dividers               |
+| `--radius`    | Corner radius for cards and buttons         |
+
+The `:root` block defines the dark palette (the default). A
+`@media (prefers-color-scheme: light)` block overrides the same token names
+with light values -- it never introduces new tokens, so any component built
+against the token list above automatically supports both themes with zero
+extra code.
+
+To add a new token: define it in both the dark (`:root`) and light
+(`@media (prefers-color-scheme: light)`) blocks together, in the same PR --
+a token defined in only one block silently falls back to the other theme's
+value in the block where it's missing.
+
 ## Layout
 
 ```
