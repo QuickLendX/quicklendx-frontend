@@ -5,6 +5,7 @@
   "description": "QuickLendX invoice-lending frontend (Next.js + TypeScript).",
   "scripts": {
     "dev": "next dev",
+    "dev:reset": "node scripts/dev-reset.mjs && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
