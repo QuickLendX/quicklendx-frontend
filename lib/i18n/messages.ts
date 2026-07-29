@@ -9,7 +9,15 @@ export const en = {
 
 export type MessageKey = keyof typeof en;
 
-export const locales = { en } as const;
+/** Intentionally partial: only translated for the keys product has signed
+ * off on so far. Untranslated keys fall back to {@link DEFAULT_LOCALE} via
+ * `t()` -- see `lib/i18n/t.test.ts` for coverage of that fallback path. */
+export const es: Partial<Record<MessageKey, string>> = {
+  "nav.dashboard": "Panel",
+  "nav.portfolio": "Cartera",
+};
+
+export const locales = { en, es } as const;
 
 export type Locale = keyof typeof locales;
 
