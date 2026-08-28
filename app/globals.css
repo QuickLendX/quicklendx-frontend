@@ -61,7 +61,10 @@ a { color: inherit; }
   transition: transform 100ms ease, background 100ms ease;
 }
 
-.btn:hover { transform: translateY(-1px); }
+/* Keyboard focus gets the same affordance as a mouse hover -- a sighted
+   keyboard user should never get less visual feedback than a mouse user. */
+.btn:hover,
+.btn:focus-visible { transform: translateY(-1px); }
 
 /* Keyboard focus must produce the same visible affordance as :hover --
    previously only :hover was styled, so a keyboard user tabbing to a
