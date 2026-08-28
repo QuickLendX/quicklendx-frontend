@@ -94,4 +94,21 @@ export const onChainReadHandlers = [
   }),
 ];
 
-export const handlers = [...authHandlers, ...onChainReadHandlers];
+/** Default handler for the on-chain transactions read layer. */
+export const transactionsHandlers = [
+  http.get("/api/transactions", () =>
+    HttpResponse.json({
+      transactions: MOCK_TRANSACTIONS.map((txn) => ({
+        ...txn,
+        amountStroops: txn.amountStroops.toString(),
+      })),
+    })
+  ),
+];
+
+/** Convenience override for tests that need an empty transactions response. */
+export const emptyTransactionsHandlers = [
+  http.get("/api/transactions", () => HttpResponse.json({ transactions: [] })),
+];
+
+export const handlers = [...authHandlers, ...onChainReadHandlers, ...transactionsHandlers];
