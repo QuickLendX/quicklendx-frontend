@@ -4,6 +4,14 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { useSidebar } from "./SidebarProvider";
 import { DashboardIcon, PortfolioIcon } from "./icons";
+import { log } from "@/lib/logger";
+
+// Route-preload hints fire on every hover of every nav link -- far too
+// high-frequency to log at "info" without drowning out real signal, so
+// this is "debug" only (see lib/logger.ts).
+function logRoutePreload(href: string): void {
+  log("debug", "route_preload", { href });
+}
 import { getAllPendingTranslations } from "@/lib/i18n/pendingTranslations";
 
 const NAV_LINKS = [
@@ -51,7 +59,7 @@ export function Sidebar() {
         <ul>
           {NAV_LINKS.map(({ href, label, Icon }) => (
             <li key={href}>
-              <Link href={href}>
+              <Link href={href} onMouseEnter={() => logRoutePreload(href)}>
                 <Suspense fallback={null}>
                   <Icon />
                 </Suspense>
