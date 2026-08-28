@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { useHealthDeep } from "./useHealthDeep";
 import type { HealthDeep } from "@/lib/health";
@@ -42,5 +42,26 @@ describe("useHealthDeep", () => {
 
     expect(result.current.health).toBeNull();
     expect(result.current.error).toBe("health/deep request failed with status 503");
+  });
+
+  it("refetch() re-runs the request and can recover from a prior error", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response("boom", { status: 503 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(sampleHealth), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { result } = renderHook(() => useHealthDeep());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.error).not.toBeNull();
+
+    act(() => {
+      result.current.refetch();
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(result.current.health).toEqual(sampleHealth);
+    expect(result.current.error).toBeNull();
   });
 });

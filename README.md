@@ -116,6 +116,7 @@ user gets one clear recovery action: retry the route.
 ## Documentation
 
 - [Client/server component boundary](./docs/client-server-boundary.md) -- when a component needs `"use client"`, with real examples from this repo.
+- [How i18n messages are extracted](./docs/i18n-message-extraction.md) -- the manual process for adding user-facing copy (no automated extraction tool).
 - [Wallet connection state machine](./docs/wallet-connection-state-machine.md)
 
 ## Contributing

@@ -36,4 +36,25 @@ describe("useInvoiceList", () => {
     expect(result.current.invoices).toEqual([]);
     expect(result.current.hasMore).toBe(false);
   });
+
+  it("prefetchNext warms the cache so loadMore appends the same next page", async () => {
+    const { result } = renderHook(() => useInvoiceList("demo-user", 2));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    const firstPageIds = result.current.invoices.map((invoice) => invoice.id);
+
+    act(() => result.current.prefetchNext());
+    act(() => result.current.loadMore());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    const allIds = result.current.invoices.map((invoice) => invoice.id);
+    expect(allIds.slice(0, firstPageIds.length)).toEqual(firstPageIds);
+    expect(allIds.length).toBeGreaterThan(firstPageIds.length);
+  });
+
+  it("prefetchNext is a no-op once there is no next page", async () => {
+    const { result } = renderHook(() => useInvoiceList("", 2));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(() => act(() => result.current.prefetchNext())).not.toThrow();
+  });
 });
