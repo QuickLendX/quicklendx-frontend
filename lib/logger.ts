@@ -1,4 +1,4 @@
-export type LogLevel = "info" | "warn" | "error";
+export type LogLevel = "debug" | "info" | "warn" | "error";
 
 export type LogFields = Record<string, string | number | boolean | null | undefined>;
 
@@ -8,8 +8,10 @@ export type LogFields = Record<string, string | number | boolean | null | undefi
  * tools. Callers must not pass secrets, tokens, or full request bodies in
  * `fields`.
  *
- * Use "info" for lifecycle events, "warn" for recoverable issues, and
- * "error" only when the caller cannot proceed.
+ * Use "debug" for high-frequency/low-signal events (e.g. route preload
+ * hints) that would otherwise drown out real signal at the default level,
+ * "info" for lifecycle events, "warn" for recoverable issues, and "error"
+ * only when the caller cannot proceed.
  */
 export function log(level: LogLevel, event: string, fields: LogFields = {}): void {
   const entry = { level, event, ...fields, ts: new Date().toISOString() };
@@ -17,5 +19,6 @@ export function log(level: LogLevel, event: string, fields: LogFields = {}): voi
 
   if (level === "error") console.error(line);
   else if (level === "warn") console.warn(line);
+  else if (level === "debug") console.debug(line);
   else console.info(line);
 }

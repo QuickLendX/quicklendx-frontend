@@ -71,3 +71,19 @@ describe("getInvoiceDetailsBatch", () => {
     expect(batchElapsed).toBeLessThan(sequentialElapsed / 2);
   });
 });
+
+describe("getTransactionsForInvoice", () => {
+  it("returns only transactions for the given invoice", async () => {
+    const transactions = await getTransactionsForInvoice("inv_1002");
+    expect(transactions.length).toBeGreaterThan(0);
+    expect(transactions.every((txn) => txn.invoiceId === "inv_1002")).toBe(true);
+  });
+
+  it("resolves to an empty list for an invoice with no transactions", async () => {
+    expect(await getTransactionsForInvoice("inv_does_not_exist")).toEqual([]);
+  });
+
+  it("resolves to an empty list for an empty invoiceId", async () => {
+    expect(await getTransactionsForInvoice("")).toEqual([]);
+  });
+});

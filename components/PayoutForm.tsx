@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { isValidStellarPublicKey } from "@/lib/stellar";
 
 export interface PayoutFormProps {
@@ -18,6 +18,24 @@ const INVALID_ADDRESS_MESSAGE =
 export function PayoutForm({ onSubmit }: PayoutFormProps) {
   const [address, setAddress] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // Clear the in-progress payout address when the tab is backgrounded
+  // (screen-shared, switched away from, etc). A partially- or fully-typed
+  // payout destination left visible is a real exposure risk given how this
+  // form is used -- funds sent to a wrong/malicious address on-chain are
+  // unrecoverable -- so this fails closed the same way submit validation
+  // does, rather than trusting the tab to stay private.
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.visibilityState === "hidden") {
+        setAddress("");
+        setError(null);
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

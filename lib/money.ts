@@ -46,3 +46,19 @@ export function parseInvoiceAmount(input: string): ParsedInvoiceAmount {
 
   return { ok: true, amountStroops: stroops };
 }
+
+export type ParsedCurrencyAmount =
+  | { ok: true; value: string }
+  | { ok: false; error: string };
+
+/** Parses a decimal currency string (e.g. invoice face value in USD) and
+ * rejects more than 2 decimal places -- distinct from {@link parseInvoiceAmount},
+ * which allows the full 7-decimal stroops precision the chain uses. Reject
+ * bad input at this boundary rather than deep inside the call graph. */
+export function parseCurrencyAmount(input: string): ParsedCurrencyAmount {
+  const trimmed = input.trim();
+  if (!/^\d+(\.\d{1,2})?$/.test(trimmed)) {
+    return { ok: false, error: "Enter a positive amount with at most 2 decimal places." };
+  }
+  return { ok: true, value: trimmed };
+}
