@@ -22,4 +22,19 @@ describe("InvoiceFundStep", () => {
     expect(push).toHaveBeenCalledWith("/dashboard/inv_1/confirm");
     expect(replace).not.toHaveBeenCalled();
   });
+
+  it("gives the primary button hover/focus parity: both are reachable and keep the same accessible name", async () => {
+    const user = userEvent.setup();
+    render(<InvoiceFundStep invoiceId="inv_1" />);
+
+    const button = screen.getByRole("button", { name: "Continue to confirm" });
+    expect(button.className).toContain("btn-primary");
+
+    await user.hover(button);
+    expect(button).toHaveAccessibleName("Continue to confirm");
+
+    await user.tab();
+    expect(button).toHaveFocus();
+    expect(button).toHaveAccessibleName("Continue to confirm");
+  });
 });

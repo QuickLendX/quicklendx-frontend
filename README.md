@@ -21,6 +21,7 @@ npm run dev
 | `npm run lint`    | ESLint (Next.js core-web-vitals + TS presets)  |
 | `npm run typecheck` | `tsc --noEmit`                               |
 | `npm test`        | vitest + React Testing Library                 |
+| `npm run check`   | Runs lint, typecheck, and test in sequence — one command before pushing |
 
 If you have [`just`](https://github.com/casey/just) installed, `just typecheck`
 is a shorthand for `npm run typecheck` (see the `Justfile`). It's optional —
@@ -36,6 +37,18 @@ business logic.
 | ------------- | -------- | ----------- | --------------------------------------------------------------------------- |
 | `SENTRY_DSN`  | No       | `""`        | Sentry DSN for error tracking. When empty, Sentry is disabled.              |
 | `STELLAR_NETWORK` | No   | `"testnet"` | Which Stellar network the client targets: `testnet` or `mainnet`. Unset or unrecognized values fall back to `testnet`. |
+
+## Mock API server for local dev
+
+`npm run mock:api` starts a standalone HTTP server (`scripts/mock-server.mjs`)
+serving canned JSON for the same paths as the real API routes under
+`app/api/` (`/api/auth/session`, `/api/alerts`), on
+`http://localhost:4000` by default. Override the port with `MOCK_API_PORT`.
+
+This is a one-command way to exercise the API surface (e.g. with `curl`, or
+from another tool) without booting the full Next dev server. It's separate
+from the [MSW handlers](#testing-auth-backed-code) used in tests -- those
+intercept requests inside the test runner, they don't listen on a real port.
 
 ## Testing auth-backed code
 
@@ -99,6 +112,12 @@ Unexpected route failures render a visible full-page fallback instead of a
 blank screen. The fallback lives in [`app/error.tsx`](./app/error.tsx) and
 reuses [`components/RouteError.tsx`](./components/RouteError.tsx) so the
 user gets one clear recovery action: retry the route.
+
+## Documentation
+
+- [Client/server component boundary](./docs/client-server-boundary.md) -- when a component needs `"use client"`, with real examples from this repo.
+- [How i18n messages are extracted](./docs/i18n-message-extraction.md) -- the manual process for adding user-facing copy (no automated extraction tool).
+- [Wallet connection state machine](./docs/wallet-connection-state-machine.md)
 
 ## Contributing
 

@@ -124,3 +124,39 @@ export async function getInvoiceDetailsBatch(
   await delay(SIMULATED_RPC_LATENCY_MS);
   return new Map(ids.map((id) => [id, detailFor(id)]));
 }
+
+export type TransactionKind = "funding" | "repayment";
+
+export interface Transaction {
+  id: string;
+  invoiceId: string;
+  kind: TransactionKind;
+  /** On-chain i128 stroops amount. Never convert to `number`. */
+  amountStroops: bigint;
+  occurredAt: string;
+}
+
+const MOCK_TRANSACTIONS: readonly Transaction[] = [
+  {
+    id: "txn_1",
+    invoiceId: "inv_1002",
+    kind: "funding",
+    amountStroops: 42_500_0000000n,
+    occurredAt: "2026-07-20T10:00:00.000Z",
+  },
+  {
+    id: "txn_2",
+    invoiceId: "inv_1002",
+    kind: "repayment",
+    amountStroops: 5_000_0000000n,
+    occurredAt: "2026-07-25T10:00:00.000Z",
+  },
+];
+
+/** Fetches every transaction for `invoiceId` through the qlx client
+ * boundary -- the `/api/transactions` route calls this directly rather
+ * than the route handler re-implementing its own ad-hoc fetch/lookup. */
+export async function getTransactionsForInvoice(invoiceId: string): Promise<Transaction[]> {
+  if (!invoiceId) return [];
+  return MOCK_TRANSACTIONS.filter((txn) => txn.invoiceId === invoiceId);
+}
