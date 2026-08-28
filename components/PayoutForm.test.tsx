@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { PayoutForm } from "./PayoutForm";
@@ -51,5 +51,42 @@ describe("PayoutForm", () => {
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(onSubmit).toHaveBeenCalledWith(VALID_KEY);
+  });
+
+  it("clears the address when the tab is backgrounded", async () => {
+    const user = userEvent.setup();
+    render(<PayoutForm onSubmit={vi.fn()} />);
+
+    const input = screen.getByLabelText<HTMLInputElement>("Payout address");
+    await user.type(input, VALID_KEY);
+    expect(input.value).toBe(VALID_KEY);
+
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => "hidden",
+    });
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+
+    expect(input.value).toBe("");
+  });
+
+  it("does not clear the address when the tab becomes visible again", async () => {
+    const user = userEvent.setup();
+    render(<PayoutForm onSubmit={vi.fn()} />);
+
+    const input = screen.getByLabelText<HTMLInputElement>("Payout address");
+    await user.type(input, VALID_KEY);
+
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => "visible",
+    });
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+
+    expect(input.value).toBe(VALID_KEY);
   });
 });
